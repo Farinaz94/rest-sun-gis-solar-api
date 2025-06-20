@@ -1,0 +1,63 @@
+services:
+  actinia:
+    image: actinia:local
+    ports:
+      - "8088:8088"
+    environment:
+      - ACTINIA_CUSTOM_TEST_SERVER=true
+      - ACTINIA_API_LOG_LEVEL=debug       
+    volumes:
+      - ./data/actinia-data/grassdb:/actinia_core/grassdb
+      - ./data/actinia-data/resources:/actinia_core/resources
+      - ./data/actinia-data/userdata:/actinia_core/userdata
+      - ./data/actinia-data/workspace/temp_db:/actinia_core/workspace/temp_db
+      - ./data/actinia-data/workspace/tmp:/actinia_core/workspace/tmp
+    restart: unless-stopped
+    depends_on:
+      valkey:
+        condition: service_started
+      postgres:
+        condition: service_healthy
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://localhost:8088/api/v3/version"]
+      interval: 30s
+      timeout: 10s
+      retries: 5
+      start_period: 60s
+   
+  valkey: 
+    image: valkey/valkey:8.1-alpine
+    volumes:
+      - ./data/valkey_data:/data
+    environment:
+      - VALKEY_PASS_FILE=/data/config/.valkey
+    command: [
+      "sh", "-c",
+      "docker-entrypoint.sh /data/config/valkey.conf --requirepass \"$$(cat $$VALKEY_PASS_FILE)\""
+    ]
+    restart: unless-stopped
+    healthcheck:
+      test: ["CMD", "valkey-cli", "ping"]
+      interval: 10s
+      timeout: 5s
+      retries: 3
+  
+  postgres:
+    image: postgis/postgis:14-3.2
+    ports:
+      - "5432:5432"
+    environment:
+      - POSTGRES_USER=actinia
+      - POSTGRES_PASSWORD=actinia
+      - POSTGRES_DB=actinia
+    volumes:
+      - postgres_data:/var/lib/postgresql/data
+    restart: unless-stopped
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U actinia"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+
+volumes:
+  postgres_data:
