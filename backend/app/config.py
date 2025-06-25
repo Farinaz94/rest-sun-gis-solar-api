@@ -1,3 +1,36 @@
-SECRET_KEY = "244a734dc6205fb0187e65908e053418b4135d89166435346a3c3d30165b7c34"
-ALGORITHM = "HS256"
-ACCESS_TOKEN_EXPIRE_MINUTES = 30
+from pydantic_settings import BaseSettings, SettingsConfigDict
+#BaseSettings helps load environment variables from a .env
+#SettingsConfigDict is used to configure how those settings are loaded (like saying: “read from .env”)
+
+class Settings(BaseSettings):
+    model_config = SettingsConfigDict(env_file=".env")
+
+    # Actinia config
+    ACTINIA_URL: str
+    ACTINIA_USER: str
+    ACTINIA_PASSWORD: str
+
+    # JWT config
+    SECRET_KEY: str
+    ALGORITHM: str = "HS256"
+    ACCESS_TOKEN_EXPIRE_MINUTES: int = 30
+
+    # Database config
+    DATABASE_URL: str
+
+    # Add the missing fields
+    POSTGRES_HOST: str
+    POSTGRES_PORT: int
+    POSTGRES_USER: str
+    POSTGRES_PASSWORD: str
+    POSTGRES_DB: str
+
+    # Valkey config
+    VALKEY_HOST: str
+    VALKEY_PORT: int
+    VALKEY_PASSWORD: str
+
+    # Additional development settings
+    DEBUG: bool
+    LOG_LEVEL: str
+settings = Settings()

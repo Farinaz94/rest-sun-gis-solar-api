@@ -35,6 +35,7 @@ services:
       "sh", "-c",
       "docker-entrypoint.sh /data/config/valkey.conf --requirepass \"$$(cat $$VALKEY_PASS_FILE)\""
     ]
+
     restart: unless-stopped
     healthcheck:
       test: ["CMD", "valkey-cli", "ping"]
