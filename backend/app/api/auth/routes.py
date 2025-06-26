@@ -1,4 +1,4 @@
-from fastapi import APIRouter, HTTPException, status, Form, Depends
+from fastapi import APIRouter, HTTPException, status, Form, Depends 
 from app.services.actinia.validation import validate_actinia_user  # Only import validate_actinia_user
 from app.services.auth.jwt import create_access_token, refresh_token, verify_token
 from fastapi.security import OAuth2PasswordBearer  # OAuth2PasswordBearer for token extraction
@@ -50,10 +50,8 @@ def get_user_profile(token: str = Depends(oauth2_scheme)):  # Now using Depends 
     # Return the user profile (could include more details as needed)
     return {"user_id": user_info["sub"], "role": user_info["role"], "groups": user_info["groups"]}
 
-# Optional /auth/logout endpoint (if you're managing refresh tokens)
+# The /auth/logout endpoint
 @router.post("/logout")
 def logout(token: str = Form(...)):
-    # Optionally, you can delete the refresh token or invalidate it.
-    # This depends on your token storage mechanism (e.g., database, cache).
     return {"message": "User logged out successfully"}
 
