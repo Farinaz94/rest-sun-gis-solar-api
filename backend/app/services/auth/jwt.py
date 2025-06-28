@@ -1,40 +1,70 @@
-from datetime import datetime, timedelta #datetime gives us the current time, and timedelta lets us add minutes/hours to it.
-from jose import JWTError, jwt #python-jose creates and reads JWT tokens. JWTError catches token errors.
+from datetime import datetime, timedelta
+from jose import JWTError, jwt
 from app.config import settings
+from fastapi import Depends, HTTPException, status
+from fastapi.security import HTTPBearer, HTTPAuthorizationCredentials
+from app.dependencies import get_db
+from sqlalchemy.orm import Session
+from app.models import User
+from fastapi.security import OAuth2PasswordBearer
+
+oauth2_scheme = OAuth2PasswordBearer(tokenUrl="auth/login")
+
+# Use HTTPBearer instead of OAuth2PasswordBearer for cleaner Swagger UI
+oauth2_scheme = HTTPBearer()
+
+# Get current user from token
+from jose.exceptions import ExpiredSignatureError
+
+def get_current_user(
+    credentials: HTTPAuthorizationCredentials = Depends(oauth2_scheme),
+    db: Session = Depends(get_db)
+) -> User:
+    token = credentials.credentials
+
+    try:
+        payload = jwt.decode(token, settings.SECRET_KEY, algorithms=[settings.ALGORITHM])
+        username: str = payload.get("sub")
+        if username is None:
+            raise HTTPException(
+                status_code=401, detail="Token payload invalid", headers={"WWW-Authenticate": "Bearer"}
+            )
+    except ExpiredSignatureError:
+        raise HTTPException(
+            status_code=401, detail="Token has expired", headers={"WWW-Authenticate": "Bearer"}
+        )
+    except JWTError:
+        raise HTTPException(
+            status_code=401, detail="Invalid token", headers={"WWW-Authenticate": "Bearer"}
+        )
+
+    user = db.query(User).filter(User.username == username).first()
+    if user is None:
+        raise HTTPException(
+            status_code=401, detail="User not found", headers={"WWW-Authenticate": "Bearer"}
+        )
+
+    return user
 
 # JWT Token Generation
 def create_access_token(data: dict, expires_delta: timedelta | None = None) -> str:
-    """
-    Create a JWT token with claims and expiration.
-    - data: the payload (e.g., user info, role)
-    - expires_delta: custom expiration time (optional, defaults to 30 minutes)
-    """
-    to_encode = data.copy()  # Copy the data(user data), so we don’t mutate the original
-    expire = datetime.utcnow() + (expires_delta or timedelta(minutes=30))  # We calculate when the token should expire.
-    to_encode.update({"exp": expire})  # Add expiration to the token
-    encoded_jwt = jwt.encode(to_encode, settings.SECRET_KEY, algorithm=settings.ALGORITHM) #sign the token using secret key, algorithm
+    to_encode = data.copy()
+    expire = datetime.utcnow() + (expires_delta or timedelta(minutes=30))
+    to_encode.update({"exp": expire})
+    encoded_jwt = jwt.encode(to_encode, settings.SECRET_KEY, algorithm=settings.ALGORITHM)
     return encoded_jwt
 
 # JWT Token Validation
 def verify_token(token: str) -> dict | None:
-    """
-    Verify and decode the JWT token
-    """
     try:
         payload = jwt.decode(token, settings.SECRET_KEY, algorithms=[settings.ALGORITHM])
         return payload if payload["exp"] >= datetime.utcnow().timestamp() else None
     except JWTError:
         return None
 
-
-# Refresh Token (create a new token with a fresh expiration)
+# Refresh Token
 def refresh_token(token: str) -> str | None:
-    """
-    Refresh the JWT token (issue a new token with a new expiration)
-    """
-    payload = verify_token(token) # decode the current token and check if it's valid.
+    payload = verify_token(token)
     if payload is None:
-        return None  # If the old token is invalid or expired, return None
-    
-    # Create a new token with extended expiration
+        return None
     return create_access_token(data=payload, expires_delta=timedelta(minutes=settings.ACCESS_TOKEN_EXPIRE_MINUTES))
