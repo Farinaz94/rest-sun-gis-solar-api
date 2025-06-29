@@ -7,15 +7,16 @@ from app.dependencies import get_db
 from sqlalchemy.orm import Session
 from app.models import User
 from fastapi.security import OAuth2PasswordBearer
+from jose.exceptions import ExpiredSignatureError
+from app.models import Session as UserSession 
 
+# OAuth2PasswordBearer is used for token authentication
 oauth2_scheme = OAuth2PasswordBearer(tokenUrl="auth/login")
-
 # Use HTTPBearer instead of OAuth2PasswordBearer for cleaner Swagger UI
 oauth2_scheme = HTTPBearer()
 
-# Get current user from token
-from jose.exceptions import ExpiredSignatureError
 
+# Extracts and verifies JWT token, returns the current user from the database
 def get_current_user(
     credentials: HTTPAuthorizationCredentials = Depends(oauth2_scheme),
     db: Session = Depends(get_db)
@@ -38,13 +39,24 @@ def get_current_user(
             status_code=401, detail="Invalid token", headers={"WWW-Authenticate": "Bearer"}
         )
 
+    # Validate user existence
     user = db.query(User).filter(User.username == username).first()
     if user is None:
         raise HTTPException(
             status_code=401, detail="User not found", headers={"WWW-Authenticate": "Bearer"}
         )
 
+    # 🔐 Check session status
+    session = db.query(UserSession).filter(UserSession.session_token == token).first()
+    if session is None or not session.is_active or session.invalidated_by_admin:
+        raise HTTPException(
+            status_code=401,
+            detail="Session is no longer active or was invalidated",
+            headers={"WWW-Authenticate": "Bearer"}
+        )
+
     return user
+
 
 # JWT Token Generation
 def create_access_token(data: dict, expires_delta: timedelta | None = None) -> str:

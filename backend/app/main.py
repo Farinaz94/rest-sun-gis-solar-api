@@ -2,6 +2,7 @@ from fastapi import FastAPI
 from app.api.auth.routes import router as auth_router
 from app.api.v1.users import router as user_router
 from app.api.v1.users.profile_routes import router as profile_router
+from app.services.auth.permissions import require_role
 
 app = FastAPI(title="FastAPI App is running")
 

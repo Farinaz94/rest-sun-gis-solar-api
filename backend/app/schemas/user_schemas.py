@@ -9,7 +9,7 @@ class UserCreate(BaseModel):
 
 class UserUpdate(BaseModel):
     username: Optional[str] = None
-    #email: Optional[EmailStr] = None
+
 
 class UserOut(BaseModel):
     id: int

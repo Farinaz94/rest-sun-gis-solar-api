@@ -9,6 +9,13 @@ class Session(SQLModel, table=True):
     login_time: datetime = Field(default_factory=datetime.utcnow)
     logout_time: Optional[datetime] = Field(default=None, nullable=True)
 
+    ip_address: str = Field(nullable=False)
+    user_agent: str = Field(nullable=False)
+    location: Optional[str] = Field(default=None, nullable=True)
+
+    is_active: bool = Field(default=True, nullable=False)
+    invalidated_by_admin: bool = Field(default=False, nullable=False)
+
     def __repr__(self):
         return (
             f"Session(id={self.id}, user_id={self.user_id}, "

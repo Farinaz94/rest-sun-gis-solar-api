@@ -27,6 +27,7 @@ def update_current_user_profile(
     db.refresh(current_user)
     return current_user
 
+
 # Delete current user profile
 @router.delete("/me")
 def delete_current_user_profile(
