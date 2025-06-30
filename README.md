@@ -52,7 +52,7 @@ ACTINIA_PASS=actinia-gdi
 ACTINIA_URL=http://localhost:8088
 SECRET_KEY=your_jwt_secret_key
 
-Docker Setup (Optional)
+Docker Setup
 ---
 Start Actinia and database with Docker:
 docker compose up --build
