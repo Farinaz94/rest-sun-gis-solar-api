@@ -13,10 +13,10 @@ import uuid
 from jose import jwt, JWTError
 from app.config import settings
 from app.services.auth.permissions import require_role
+from uuid import uuid4  
 
 router = APIRouter()
-
-# Use HTTPBearer
+  
 http_bearer = HTTPBearer()
 
 @router.get("/me")
@@ -40,8 +40,6 @@ def get_user_profile(
         "groups": user.groups
     }
 
-
-from uuid import uuid4  # make sure you import this at the top
 
 @router.post("/login")
 def login(
@@ -83,7 +81,6 @@ def login(
     db.commit()
 
     return {"access_token": token, "token_type": "bearer"}
-
 
 
 @router.get("/ip_address")

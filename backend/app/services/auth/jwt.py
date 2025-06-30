@@ -46,7 +46,7 @@ def get_current_user(
             status_code=401, detail="User not found", headers={"WWW-Authenticate": "Bearer"}
         )
 
-    # 🔐 Check session status
+    # Check session status
     session = db.query(UserSession).filter(UserSession.session_token == token).first()
     if session is None or not session.is_active or session.invalidated_by_admin:
         raise HTTPException(
