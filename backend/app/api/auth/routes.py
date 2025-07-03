@@ -58,11 +58,16 @@ def login(
         raise HTTPException(status_code=404, detail="User not found")
 
     # Step 3: Generate token using user's actual role and groups
+    # Inside your /login route
     token = create_access_token({
         "sub": username,
+        "user_id": user.id,
+        "username": user.username, 
         "role": user.role,
         "groups": user.groups or []
     })
+
+
 
     # Step 4: Extract metadata
     ip = request.client.host
