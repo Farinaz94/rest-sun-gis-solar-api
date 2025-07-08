@@ -352,7 +352,7 @@ docker-compose exec actinia actinia-user create -u test_user -w test123 -r user 
 # Test user login via Actinia API
 curl -X POST "http://localhost:8088/api/v3/auth" -H "Content-Type: application/json" -d '{"username": "dev_user", "password": "dev123"}'
 
-# This should return an authentication token
+# This should return an authentication token   !!!!!!!!!!!!!!!!!
 ```
 
 ### Step 7: Backend Development Environment Setup
