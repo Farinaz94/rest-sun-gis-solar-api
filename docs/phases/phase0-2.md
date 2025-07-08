@@ -582,7 +582,7 @@ Develop role-based access control and permission management building on Actinia'
 - Development environment with comprehensive authentication testing
 - Session security features and token refresh mechanisms
 
-### Phase 2 – File Upload, Validation Pipeline, and Synthetic DSM Generation
+### Phase 2 – File Upload, Validation Pipeline, and Synthetic DSM Generation  
 
 **Objectives**:
 - Implement file upload endpoints with validation using GDAL
